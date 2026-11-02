@@ -12,3 +12,4 @@ Only add tracks whose license allows use on a monetized website. Keep the `licen
 | File | Title | Author | License | Source |
 |---|---|---|---|---|
 | lofi-hip-hop-loop.ogg | Lofi Hip Hop Loop | omfgdude (OMF-Games) | CC0 (stated in a comment on the source page; author field blank) | https://opengameart.org/content/lofi-hip-hop-loop |
+| chill-loopable.mp3 | Chill (Loopable) | Alex McCulloch (Pro Sensory) | CC0 (author asks to be credited) | https://opengameart.org/content/chill-loopable |
