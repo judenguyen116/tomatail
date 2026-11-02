@@ -13,3 +13,4 @@ Only add tracks whose license allows use on a monetized website. Keep the `licen
 |---|---|---|---|---|
 | lofi-hip-hop-loop.ogg | Lofi Hip Hop Loop | omfgdude (OMF-Games) | CC0 (stated in a comment on the source page; author field blank) | https://opengameart.org/content/lofi-hip-hop-loop |
 | chill-loopable.mp3 | Chill (Loopable) | Alex McCulloch (Pro Sensory) | CC0 (author asks to be credited) | https://opengameart.org/content/chill-loopable |
+| running-waters.mp3 | Running Waters | Jason Shaw (Audionautix.com) | CC BY 4.0 (credit required, shown in the player) | https://audionautix.com/free-music/meditative |
