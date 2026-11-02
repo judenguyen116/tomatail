@@ -276,35 +276,39 @@ const $=function(id){return document.getElementById(id);};
 /* ---------- pixel art ---------- */
 const SP={
   chicken:{name:'Chicken',blurb:'Early riser. Strong opinions about corn.',
-    pal:{w:'#f6efe2',r:'#d6382a',y:'#f2b632',k:'#2a1a1a',l:'#e08a2c'},rows:[
-    '......rr........','.....rrrr.......','.....wwwwyy.....','.....wkwwyy.....','.....wwwwr......','....wwwww.......',
-    '...wwwwwwww.....','..wwwwwwwwww....','..wwwwwwwwww....','...wwwwwwww.....','.....l..l.......','....ll.ll.......']},
+    pal:{o:'#3a2a35',w:'#fffdf5',s:'#d9d4c4',r:'#d6382a',y:'#f2b632',k:'#2a1a1a',l:'#e08a2c'},rows:[
+    '...ooo..........','..orrro.........','..orrrroo.......','.oowkwwwwo......','oyyowwwwwwo..o..','.oorwwwwwwwwo.o.',
+    '..owwwwwwwwwwoo.','..owwwwwwwwwwwo.','..owsswwwwwwwo..','...owsssswwwwo..','....oowwwwwwoo..','.....ooooooo....','......l..l......','.....ll.ll......']},
   parrot:{name:'Parrot',blurb:'Repeats what you said. Wrongly, loudly.',
-    pal:{r:'#d8372f',b:'#2c6fd1',y:'#f2b632',k:'#1a1a1a'},rows:[
-    '.....rrrr.......','....rrrrrr......','....rkrrrryy....','....rrrrrry.....','....rrrrrr......','...rrrrbbr......',
-    '...rrrbbbbr.....','...rrbbbbbr.....','....rbbbbr......','....rbbbr.......','.....bbb........','.....y.y........']},
+    pal:{o:'#3a2a35',g:'#4fb04a',G:'#2f8a3a',l:'#9fd96a',y:'#f2b632',k:'#1a1a1a'},rows:[
+    '......ooooo.....','.....ogggggo....','....ogggggggo...','..ooyyogkgggo...','..oyyyoggggggo..','...ooyoggggggo..',
+    '....oogggglllgo.','....ogggGGgllgo.','....ogGGGGGllgo.','....ogGGGGGggo..','.....oGGGGggo...','......oGGGGo....','.....yy.yy......']},
   pig:{name:'Mini pig',blurb:'Tiny, pink, professionally snuffly.',
-    pal:{p:'#f4a8b5',d:'#e07a93',k:'#2a1a1a'},rows:[
-    '....pp....pp....','...pppp..pppp...','...pppppppppp...','...pkppppkpp....','...pppddddppp...','...pppdkddkdppp.',
-    '....pppddddpp...','...pppppppppppp.','..pppppppppppppp','..pppppppppppppp','...pppppppppppp.','...dd.dd..dd.dd.']},
+    pal:{o:'#3a2a35',p:'#f7b0bd',d:'#e58aa0',n:'#d9708c',k:'#2a1a1a'},rows:[
+    '.....oo.........','....oppo........','...oppppppppppo.','..oppppppppppppo','oonpkppppppppppo','onnpppppppppppo.',
+    'oonppppppppppppo','..oppppppppppppo','..oddddddddddddo','...ooooooooooooo','...pp.pp...pp.pp','...oo.oo...oo.oo']},
   hamster:{name:'Hamster',blurb:'Cheeks full. Wheel running. No notes.',
-    pal:{h:'#d9a566',w:'#f6e6cf',e:'#c98a52',k:'#2a1a1a',n:'#e8808f'},rows:[
-    '...eeee..eeee...','...eeee..eeee...','...hhhhhhhhhh...','..hhhkhhhhkhhh..','..hwwhhnnhhwwh..','..hwwwhnnhwwwh..',
-    '..hhwwwwwwwwhh..','..hhhwwwwwwhhh..','...hhhwwwwhhh...','...hhhhhhhhhh...','....nn....nn....']},
+    pal:{o:'#3a2a35',h:'#d9a066',w:'#f6e6cf',e:'#e8a0a0',k:'#2a1a1a',n:'#e8808f'},rows:[
+    '...oo......oo...','..oeeo....oeeo..','..ohhhhhhhhhho..','.ohhhhhhhhhhhho.','.ohhkhhhhhhkhho.','.ohhhhhwwhhhhho.',
+    '.ohwwhhnnhhwwho.','.owwwwhhhhwwwwo.','.owwwwwwwwwwwwo.','.ohwwwwwwwwwwho.','..ohhwwwwwwhho..','...oohhhhhhoo...',
+    '...onno..onno...','...oooo..oooo...']},
   monkey:{name:'Golden monkey',blurb:'Climbs everything. Respects nothing.',
-    pal:{y:'#e5a92a',f:'#f6dcae',k:'#2a1a1a',n:'#b9704a',t:'#b9791f'},rows:[
-    '....yyyyyyy.....','...yyyyyyyyy....','..yyyfffffyyy...','..yyfkffkfffyy..','..yyffffffffyy..','...yyfffnffyy...',
-    '....yyfffffyy...','...yyyyyyyyy...t','..yyyyyyyyyyy..t','..yyyyyyyyyyy.tt','...yy.....yy.ttt']},
+    pal:{o:'#3a2a35',y:'#e2a032',f:'#f6dcae',k:'#2a1a1a',n:'#b9704a'},rows:[
+    '...ooooooooo....','..oyyyyyyyyyo...','.oyyyyyyyyyyyo..','oyyyfffffffffyyo','oyyfkffffffkffyo','oyyfffffffffffyo',
+    '.oyyfffnnfffyyo.','.oyyyffffffyyyo.','..oyyyyyyyyyyo..','..oyyyyyyyyyyo..','.oyyyyyyyyyyyyo.','.oyyyyyyyyyyyyo.',
+    '..oyyo....oyyo..','..oooo....oooo..']},
   turtle:{name:'Turtle',blurb:'Slow on purpose. Wise by accident.',
-    pal:{g:'#4f9a4a',s:'#2f6b36',l:'#9ccf6a',k:'#1a1a1a'},rows:[
-    '......gggg......','....ggsggsgg....','...ggsggggsgg...','..ggggsggsggg.ll','..gggggggggggllk','...ssssssssss.ll','..ll.ll...ll.ll.']},
+    pal:{o:'#3a2a35',g:'#58a653',s:'#2f6b36',l:'#a9d46c',k:'#1a1a1a'},rows:[
+    '................','......oooooo....','....oggggggggo..','.oo.oggsggggsggo','olkloggsggsggsgo','ollllggggggggggo',
+    '.oooossssssssso.','...ollo.ooooollo','...oooo......oo.']},
   snake:{name:'Snake',blurb:'Quiet roommate. Judges silently.',
-    pal:{g:'#5ba84a',c:'#cfe59a',k:'#1a1a1a',r:'#e0405a'},rows:[
-    '.....gggg.......','....ggggggg.....','....gkgggggrr...','....ggggggg.....','.....gggg.......','....gggggggggg..',
-    '...gcgcgcgcgggg.','...gggggggggggg.','....gcgcgcgcgg..','.....ggggggg....']},
+    pal:{o:'#3a2a35',g:'#5fae4c',G:'#3f8a3a',c:'#d8e8a0',k:'#1a1a1a',r:'#e0405a'},rows:[
+    '..oooo..........','.ogkggo.........','.oggggo.........','..oggo..........','..ogggoooooo....','.ogggggggggggo..',
+    '.oGgGgGgGgGgggo.','oggggggggggggggo','ocgcgcgcgcgcgcgo','oggggggggggggggo','.oggggggggggggo.','..oooooooooooo..']},
   fish:{name:'Fish',blurb:'Bowl philosopher. Blub.',
-    pal:{o:'#f08a2c',w:'#ffffff',k:'#1a1a1a',f:'#d4571f'},rows:[
-    '......oooo......','....ooooooo..ff.','..ooooooooooofff','..okoowooowoo.ff','..ooooooooooofff','....ooooooo..ff.','......oooo......']}
+    pal:{o:'#3a2a35',b:'#4f86a8',B:'#3a6a8a',w:'#9fc6dc',f:'#e8803a',k:'#1a1a1a'},rows:[
+    '......offo......','....oooooooo....','..oobbbbbbbbo.oo','.obbbbbbbbbbbofo','obbkbbbbBBbbbbfo','obbbbbbbbBBbbofo',
+    '.owwwwwwwwwwwofo','..oowwwwwwwwo.oo','....oooooooo....']}
 };
 const ORDER=['chicken','parrot','pig','hamster','monkey','turtle','snake','fish'];
 const IC={
@@ -767,7 +771,7 @@ function drawPet(t,stage){
   else dy=1;
   const x=Math.round(PX-w/2+dx),y=Math.round(GROUND-h*sc+dy);
   c.fillStyle='rgba(0,0,0,.22)';c.fillRect(x+6,GROUND,w-12,2);
-  paint(c,s.rows,s.pal,x,y,sc,anim&&anim.kind==='water'?true:false);
+  paint(c,s.rows,s.pal,x,y,sc,false);
   // mood marker
   const mx=PX-4,my=y-12;
   if(medRunning){const r=7+Math.round(Math.sin(t/500)*2);c.strokeStyle='#c27ad9';c.lineWidth=1;c.strokeRect(PX-r,y-8-r/2,r*2,r);}
