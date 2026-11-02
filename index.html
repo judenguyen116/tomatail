@@ -698,7 +698,9 @@ $('logout').onclick=logout;
 /* ---------- music library ---------- */
 // Add real tracks here. Put the audio files in /audio and fill in the license and source for each.
 // { title:'Track name', artist:'Artist', src:'audio/track.mp3', license:'CC0 | CC-BY 4.0 | ...', url:'https://page-where-you-got-it' }
-const LIBRARY=[];
+const LIBRARY=[
+  {title:'Lofi Hip Hop Loop',artist:'omfgdude (OMF-Games)',src:'audio/lofi-hip-hop-loop.ogg',license:'CC0',url:'https://opengameart.org/content/lofi-hip-hop-loop'}
+];
 const Music=(function(){
   const audio=new Audio();audio.preload='none';audio.volume=0.7;
   const items=LIBRARY.map(function(t){return Object.assign({kind:'file'},t);})
