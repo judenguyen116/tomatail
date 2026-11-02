@@ -717,14 +717,17 @@ const Music=(function(){
     }else cr.hidden=true;
   }
   function halt(){audio.pause();Lofi.stop();}
-  function play(i){
+  function play(i,tries){
+    tries=tries||0;
     cur=((i%items.length)+items.length)%items.length;sel.value=cur;halt();const t=items[cur];
     if(t.kind==='file'){
-      audio.src=t.src;
+      const fail=function(){
+        playing=false;
+        if(tries<items.length){toast('That track would not load, trying the next one.');play(cur+1,tries+1);}else ui();
+      };
+      audio.onerror=fail;audio.src=t.src;
       const pr=audio.play();
-      if(pr&&pr.then)pr.then(function(){playing=true;ui();}).catch(function(){
-        playing=false;ui();toast('Could not play that track. Check the file path in the library.');
-      });
+      if(pr&&pr.then)pr.then(function(){playing=true;ui();}).catch(fail);
       else{playing=true;ui();}
     }else{
       Lofi.setTrack(t.idx);playing=Lofi.start();
@@ -733,7 +736,6 @@ const Music=(function(){
   }
   function stop(){halt();playing=false;ui();}
   audio.addEventListener('ended',function(){play(cur+1);});
-  audio.addEventListener('error',function(){if(playing){toast('Track failed to load, skipping.');play(cur+1);}});
   btn.onclick=function(){playing?stop():play(cur);};
   $('nextBtn').onclick=function(){play(cur+1);};
   sel.onchange=function(){const was=playing;cur=parseInt(sel.value,10);if(was)play(cur);else ui();};
