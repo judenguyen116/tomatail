@@ -29,3 +29,19 @@ const S=h.match(/rows:\[([\s\S]*?)\]\}/g);let bad=0;
 const re=/'([.a-z]{5,})'/g;
 h.split('const ORDER')[0].split('const SP={')[1].split('\n').forEach((ln,i)=>{let x;const r=/'([.a-zA-Z]+)'/g;while((x=r.exec(ln))){if(x[1].length!==16&&!/^(\w{1,10})$/.test(x[1])){console.log('bad width',x[1].length,x[1]);bad++}}});
 console.log('ok bad=',bad);
+// one reward per day
+{
+const L2=h.split('//#LOGIC-START')[1].split('//#LOGIC-END')[0];
+const m2=new Function(L2+';return {newGame,completeTask,rescue,sync,TASKS,noteLogin}')();
+let g=m2.newGame('pig',D(0));
+m2.TASKS.forEach(t=>m2.completeTask(g,t,D(0)));assert.equal(g.fruits,2);
+// repeat same day: no more
+m2.TASKS.forEach(t=>{g.tasks[t]=false;});m2.TASKS.forEach(t=>m2.completeTask(g,t,D(0)));assert.equal(g.fruits,2);assert.equal(g.happiness,7);
+// time going backwards: no reward
+m2.TASKS.forEach(t=>{g.tasks[t]=false;});m2.TASKS.forEach(t=>m2.completeTask(g,t,D(-1)));assert.equal(g.fruits,2);
+// rescue same day cannot be farmed
+g.alive=false;m2.rescue(g,D(0),'x');m2.TASKS.forEach(t=>m2.completeTask(g,t,D(0)));assert.equal(g.fruits,1);
+m2.TASKS.forEach(t=>m2.completeTask(g,t,D(1)));assert.equal(g.fruits,2);
+assert.equal(m2.noteLogin(g,D(1)),1);assert.equal(m2.noteLogin(g,D(1)),2);assert.equal(m2.noteLogin(g,D(2)),1);
+console.log('daily reward ok');
+}
