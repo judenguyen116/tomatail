@@ -192,7 +192,7 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
       <ul class="log" id="logList"></ul>
     </div>
     <div class="grp row">
-      <button class="px sm" id="fixFruit">Set tomatoes to 1</button>
+      <button class="px sm" id="fixFruit">Reset tomatoes</button>
       <button class="px sm" id="resetPet">Reset this pet</button>
       <button class="px sm" id="logout">Log out</button>
     </div>
@@ -212,7 +212,7 @@ function dayKey(ms,tz){return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:
 function dayNum(k){const p=k.split('-').map(Number);return Date.UTC(p[0],p[1]-1,p[2])/864e5;}
 function daysBetween(a,b){return Math.round(dayNum(b)-dayNum(a));}
 function freshTasks(day){return {day:day,feed:false,water:false,play:false,meditate:false};}
-function newGame(species,today){return {species:species,alive:true,happiness:MAX_HAPPY,fruits:1,rescues:0,streak:0,lastValidDay:null,lastRewardDay:null,logins:{day:today,n:0},lastCheckinDay:today,appliedAbsence:0,tasks:freshTasks(today),outbox:[],log:[]};}
+function newGame(species,today){return {species:species,alive:true,happiness:MAX_HAPPY,fruits:0,rescues:0,streak:0,lastValidDay:null,lastRewardDay:null,logins:{day:today,n:0},lastCheckinDay:today,appliedAbsence:0,tasks:freshTasks(today),outbox:[],log:[]};}
 function noteLogin(g,today){if(!g.logins||g.logins.day!==today)g.logins={day:today,n:0};g.logins.n+=1;return g.logins.n;}
 function canReward(g,today){const last=g.lastRewardDay||g.lastValidDay;return last===null||last===undefined||daysBetween(last,today)>0;}
 function absentDays(g,today){return Math.max(0,daysBetween(g.lastCheckinDay,today)-1);}
@@ -265,7 +265,7 @@ function completeTask(g,task,today){
 }
 function rescue(g,today,letter){
   if(g.alive||g.rescues>=MAX_RESCUES||!letter||!String(letter).trim())return false;
-  g.alive=true;g.happiness=MAX_HAPPY;g.fruits=1;g.rescues+=1;
+  g.alive=true;g.happiness=MAX_HAPPY;g.fruits=0;g.rescues+=1;
   g.streak=0;g.lastValidDay=null;g.lastCheckinDay=today;g.appliedAbsence=0;
   g.tasks=freshTasks(today);g.outbox=[];delete g.diedOn;
   return true;
@@ -704,7 +704,7 @@ $('themeBtn').onclick=function(){
   const r=document.documentElement,dark=r.getAttribute('data-theme')==='dark'||(r.getAttribute('data-theme')!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);
   r.setAttribute('data-theme',dark?'light':'dark');
 };
-$('fixFruit').onclick=function(){if(!G||!G.alive)return;G.fruits=1;save();refresh();toast('Tomatoes on the plant set back to 1.');};
+$('fixFruit').onclick=function(){if(!G||!G.alive)return;G.fruits=(G.lastRewardDay===today())?1:0;save();refresh();toast('Tomatoes reset to '+G.fruits+' (one per day you completed).');};
 $('resetPet').onclick=function(){
   if(!S.email)return;LS.del('tomatail:game:'+S.email);G=null;S.offset=0;LS.set('tomatail:offset','0');stopMed();
   pickMode='first';buildPick();showScreen('s-pick');$('tools').hidden=true;$('toolsBtn').setAttribute('aria-expanded','false');
