@@ -19,13 +19,13 @@ Row Level Security: signed-in users can only read their own rows. Nobody can ins
 ## RPC functions (call with `supabase.rpc(name, args)`)
 | Function | Does |
 |---|---|
-| `record_login()` | Counts a visit; voids an unfinished day (leaving early does not count) |
+| `record_login()` | Counts a visit (at most one per minute); voids an unfinished day (leaving early does not count) |
 | `get_state()` | Returns today, time zone, logins today, pet, today's tasks |
 | `adopt_pet(p_species)` | New pet. Refused if the current pet is alive, or dead with rescues left |
 | `start_meditation()` | Records when the 10-minute session started |
 | `complete_task(p_task)` | `feed`, `water`, `play`, `meditate` (needs 10 minutes since start). All 4 done = +1 tomato and +1 happiness, once per day. Returns `valid` and `gift` (7-day streak) |
 | `rescue_pet(p_letter)` | Brings a dead pet back; max 5 per pet; plant restarts at 0 |
-| `set_timezone(p_tz)` | Changes the user's time zone (IANA name) |
+| `set_timezone(p_tz)` | Changes the user's time zone (IANA name). First set is free, then once every 7 days. Changing zone cannot open a second rewarded day |
 | `retire_pet()` | Prototype tool: give up the current pet |
 
 The day is computed from the user's time zone on the server.
