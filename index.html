@@ -1083,31 +1083,35 @@ function drawCity(t,hr,P){
   c.fillStyle='#4a2e24';c.fillRect(122,16,20,18);c.fillStyle='#f4e4c2';c.fillRect(124,18,16,14);
   disc(c,132,25,4,'#e0402b');c.fillStyle='#3f8a30';c.fillRect(131,20,3,1);c.fillStyle='#ffb09a';c.fillRect(130,23,1,1);
   // Japanese paper pendant lamp (Akari style) hanging over the chair
-  c.fillStyle='#3a2a2a';c.fillRect(160,0,1,22);
+  c.fillStyle='#3a2a2a';c.fillRect(172,0,1,22);
   const LB=pxBuf(),pp=mix('#fbefd2','#ffe9b0',night),pr=mix('#e6d2a8','#f0c878',night),pg=mix('#fff8e6','#fff4cf',night);
   for(let y=-11;y<=11;y++){const hw=Math.round(Math.sqrt(1-(y*y)/(11.6*11.6))*9);for(let x=-hw;x<=hw;x++){
-    let col=pp;if((y+11)%4===0)col=pr;if(Math.abs(x)<=3&&y>-8&&y<6&&(y+11)%4!==0)col=pg;LB.set(160+x,34+y,col);}}
+    let col=pp;if((y+11)%4===0)col=pr;if(Math.abs(x)<=3&&y>-8&&y<6&&(y+11)%4!==0)col=pg;LB.set(172+x,34+y,col);}}
   flushBuf(LB);
-  c.fillStyle='#3a2a2a';c.fillRect(158,22,5,1);c.fillRect(158,46,5,1);
+  c.fillStyle='#3a2a2a';c.fillRect(170,22,5,1);c.fillRect(170,46,5,1);
   // low pleated lounge chair (Togo style): a puffy seat with a curved back, no legs
   const BB=pxBuf(),ch=mix('#d8ae80','#9c7652',night*0.6),chD=mix('#b48a62','#7a5a3c',night*0.6),chL=mix('#ecca9e','#b08a62',night*0.6);
   function inChair(x,y){
-    const seat=x>=140&&x<=175&&y>=80&&y<=92&&!((x<142||x>173)&&(y<82||y>90));
-    const back=x>=158&&x<=175&&y>=64&&y<=80&&!(x<162&&y<68)&&!(x<160&&y<72)&&!(x>173&&y<66);
+    // chair pushed back toward the wall and to the right, out of the pet's space
+    const seat=x>=154&&x<=189&&y>=77&&y<=89&&!((x<156||x>187)&&(y<79||y>87));
+    const back=x>=172&&x<=189&&y>=61&&y<=77&&!(x<176&&y<65)&&!(x<174&&y<69)&&!(x>187&&y<63);
     return seat||back;
   }
-  for(let y=62;y<=92;y++)for(let x=138;x<=176;x++)if(inChair(x,y)){
+  for(let y=59;y<=89;y++)for(let x=152;x<=190;x++)if(inChair(x,y)){
     let col=ch;
-    if((y-64)%4===3)col=chD;
-    if(x>=158&&y>=78&&y<=80)col=chD;
+    if((y-61)%4===3)col=chD;
+    if(x>=172&&y>=75&&y<=77)col=chD;
     if(!inChair(x,y-1)||!inChair(x-1,y))col=chL;
     BB.set(x,y,col);
   }
   flushBuf(BB);
-  // a mug with steam next to the rug
-  c.fillStyle=OUT;c.fillRect(152,95,8,7);c.fillStyle='#f4ead8';c.fillRect(153,96,6,5);c.fillStyle=OUT;c.fillRect(160,97,2,3);
-  c.fillStyle='#8a5a3a';c.fillRect(153,96,6,1);
-  c.fillStyle='rgba(255,255,255,0.55)';for(let k=0;k<2;k++){const ph=(t/400+k*2)%6;c.fillRect(154+k*3+Math.round(Math.sin(ph)),92-Math.floor(ph),1,2);}
+  // small round side table with the coffee mug, between the rug and the chair
+  c.fillStyle=OUT;c.fillRect(144,80,15,4);c.fillRect(149,84,3,10);c.fillRect(146,93,9,2);
+  c.fillStyle=mix('#9a6a44','#6a4630',night);c.fillRect(145,81,13,2);c.fillRect(150,84,1,9);c.fillRect(147,93,7,1);
+  c.fillStyle=mix('#b8835a','#7e553a',night);c.fillRect(145,81,13,1);
+  c.fillStyle=OUT;c.fillRect(148,73,7,7);c.fillStyle='#f4ead8';c.fillRect(149,74,5,5);c.fillStyle=OUT;c.fillRect(155,75,2,3);
+  c.fillStyle='#8a5a3a';c.fillRect(149,74,5,1);
+  c.fillStyle='rgba(255,255,255,0.55)';for(let k=0;k<2;k++){const ph=(t/400+k*2)%6;c.fillRect(150+k*2+Math.round(Math.sin(ph)),70-Math.floor(ph),1,2);}
 }
 function drawCityFront(t,hr,P){
   // window frame and curtains drawn over the plant, so the plant reads as outside on the balcony
@@ -1135,7 +1139,7 @@ function drawLampGlow(hr,P){
     c.fillStyle=v;c.fillRect(0,0,192,108);
   }
   const k=0.16+0.38*n;
-  const g=c.createRadialGradient(160,34,2,150,52,100);
+  const g=c.createRadialGradient(172,34,2,158,52,100);
   g.addColorStop(0,'rgba(255,200,120,'+k.toFixed(3)+')');g.addColorStop(0.5,'rgba(255,190,110,'+(k*0.45).toFixed(3)+')');g.addColorStop(1,'rgba(255,190,110,0)');
   c.fillStyle=g;c.fillRect(0,0,192,108);
 }
