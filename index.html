@@ -122,7 +122,7 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
       <div class="err" id="resetErr" role="alert"></div>
       <button class="link" id="backLogin" type="button">Back to log in</button>
     </form>
-    <p class="note">Prototype: accounts, codes and emails are simulated inside this browser. Nothing is sent anywhere.</p>
+    <p class="note" id="authNote">Prototype: accounts, codes and emails are simulated inside this browser. Nothing is sent anywhere.</p>
   </section>
 
   <!-- PICK -->
@@ -173,7 +173,7 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
   <!-- TOOLS -->
   <section id="tools" class="card tools" hidden>
     <h3>Prototype tools</h3>
-    <div class="grp">
+    <div class="grp" id="tmGrp">
       <b>Time machine</b>
       <p class="muted" id="clockTxt"></p>
       <div class="row">
@@ -193,7 +193,7 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
       </div>
     </div>
     <div class="grp">
-      <b>Simulated notifications and emails</b>
+      <b id="logTitle">Simulated notifications and emails</b>
       <ul class="log" id="logList"></ul>
     </div>
     <div class="grp row">
@@ -207,6 +207,7 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function(){
 'use strict';
@@ -435,13 +436,83 @@ let G=null,pickMode='first',busy=false,anim=null,medTimer=null,medEnd=0,medRunni
 const fx=[];
 
 function nowMs(){return Date.now()+S.offset*864e5;}
-function today(){return dayKey(nowMs(),S.tz);}
-function save(){if(S.email&&G)LS.set('tomatail:game:'+S.email,JSON.stringify(G));}
+function today(){return (ONLINE&&S.serverToday)?S.serverToday:dayKey(nowMs(),S.tz);}
+function save(){if(ONLINE)return;if(S.email&&G)LS.set('tomatail:game:'+S.email,JSON.stringify(G));}
 function spLabel(){return G?SP[G.species].name.toLowerCase():'pet';}
 
 let toastT=null;
 function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},3800);}
 function showScreen(id){['s-auth','s-pick','s-home'].forEach(function(s){$(s).hidden=(s!==id);})}
+
+/* ---------- online (Supabase) ---------- */
+const SUPA_URL='https://wqdiglfdolqelyvidslp.supabase.co';
+const SUPA_KEY='sb_publishable_LAnwCY59ami4q7yMIH7sPw_4hPyyE9f';
+const ONLINE_ALLOWED=true;
+let sb=null;
+if(ONLINE_ALLOWED&&window.supabase&&window.supabase.createClient){
+  try{sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}});}catch(e){sb=null;}
+}
+const ONLINE=!!sb;
+const HERE=location.origin+location.pathname;
+let recoveryViaLink=false;
+async function rpc(fn,args){
+  const res=await sb.rpc(fn,args||{});
+  if(res.error)throw res.error;
+  return res.data;
+}
+function errMsg(e){return (e&&(e.message||e.error_description))||'Something went wrong. Try again.';}
+function fromServer(st){
+  if(!st)return;
+  S.serverToday=st.today;if(st.timezone)S.tz=st.timezone;
+  if(!st.pet){G=null;return;}
+  const p=st.pet,t=st.today,tk=st.tasks||{};
+  const oldLog=(G&&G.log)?G.log:[];
+  G={species:p.species,alive:p.alive,happiness:p.happiness,fruits:p.fruits,rescues:p.rescues,streak:p.streak,
+     lastValidDay:p.last_valid_day,lastRewardDay:p.last_reward_day,lastCheckinDay:p.last_checkin_day,
+     appliedAbsence:p.applied_absence,outbox:(p.notified||[]).slice(),log:oldLog,diedOn:p.died_on,petId:p.id,
+     logins:{day:t,n:st.logins_today||0},
+     tasks:{day:t,feed:!!tk.feed,water:!!tk.water,play:!!tk.play,meditate:!!tk.meditate}};
+}
+async function loadLog(){
+  if(!G||!G.petId)return;
+  try{
+    const res=await sb.from('pet_events').select('day,kind').eq('pet_id',G.petId).in('kind',['browser','email','death','rescue']).order('at',{ascending:false}).limit(6);
+    if(!res.error)G.log=(res.data||[]).reverse();
+  }catch(e){}
+}
+async function enterOnline(user){
+  S.email=user.email||'';
+  try{
+    const flag='tomatail:tzset:'+user.id;
+    if(!LS.get(flag)){await rpc('set_timezone',{p_tz:detectedTz});LS.set(flag,'1');}
+  }catch(e){}
+  let before=null;try{before=await rpc('get_state');}catch(e){}
+  let st;
+  try{st=await rpc('record_login');}catch(e){toast(errMsg(e));showScreen('s-auth');return;}
+  if(before&&before.tasks&&!before.tasks.rewarded&&(before.tasks.feed||before.tasks.water||before.tasks.play||before.tasks.meditate)){
+    toast('Last visit ended before all four tasks, so that day did not count. Start again.');
+  }
+  G=null;fromServer(st);await loadLog();
+  buildTools();
+  if(G){showScreen('s-home');refresh();const n=absentDays(G,today());setTimeout(function(){greet(n);},500);}
+  else{pickMode='first';buildPick();showScreen('s-pick');}
+}
+async function refetch(){try{fromServer(await rpc('get_state'));await loadLog();refresh();}catch(e){toast(errMsg(e));}}
+async function bootOnline(){
+  $('authNote').textContent='Your account and your pet are saved online, so you can play from any device.';
+  $('tmGrp').hidden=true;$('fixFruit').hidden=true;$('logTitle').textContent='Reminders and events';
+  sb.auth.onAuthStateChange(function(ev){
+    if(ev==='PASSWORD_RECOVERY'){
+      recoveryViaLink=true;showScreen('s-auth');$('authForm').hidden=true;$('resetForm').hidden=false;
+      $('resetStep1').hidden=true;$('resetStep2').hidden=false;$('otp').parentElement.hidden=true;
+      $('otpNote').textContent='Choose a new password for your account.';
+    }
+  });
+  let session=null;
+  try{session=(await sb.auth.getSession()).data.session;}catch(e){}
+  if(recoveryViaLink)return;
+  if(session&&session.user)enterOnline(session.user);else showScreen('s-auth');
+}
 
 /* ---------- accounts (simulated) ---------- */
 function getAcct(e){try{return JSON.parse(LS.get('tomatail:acct:'+e)||'null');}catch(_){return null;}}
@@ -459,6 +530,7 @@ $('authForm').addEventListener('submit',function(ev){
   ev.preventDefault();
   const e=$('email').value.trim().toLowerCase(),p=$('pw').value;
   if(!validEmail(e)){$('authErr').textContent='Enter a valid email address.';return;}
+  if(ONLINE){onlineAuth(e,p);return;}
   const a=getAcct(e);
   if(authMode==='up'){
     if(a){$('authErr').textContent='That email already has an account. Try logging in.';return;}
@@ -469,7 +541,31 @@ $('authForm').addEventListener('submit',function(ev){
     enter(e);
   }
 });
+async function onlineAuth(e,p){
+  const err=$('authErr'),btn=$('authGo');err.textContent='';
+  if(p.length<6){err.textContent='Password needs at least 6 characters.';return;}
+  btn.disabled=true;
+  try{
+    if(authMode==='up'){
+      const r=await sb.auth.signUp({email:e,password:p,options:{emailRedirectTo:HERE}});
+      if(r.error)throw r.error;
+      if(r.data.session)enterOnline(r.data.user);
+      else{err.textContent='Almost there: we sent a confirmation link to '+e+'. Open it, then log in here.';setMode('in');err.textContent='We sent a confirmation link to '+e+'. Open it, then log in here.';}
+    }else{
+      const r=await sb.auth.signInWithPassword({email:e,password:p});
+      if(r.error)throw r.error;
+      enterOnline(r.data.user);
+    }
+  }catch(x){err.textContent=errMsg(x);}
+  btn.disabled=false;
+}
 $('gmailBtn').onclick=function(){
+  if(ONLINE){
+    sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:HERE}}).then(function(r){
+      if(r.error)$('authErr').textContent='Google sign-in is not ready yet: '+errMsg(r.error);
+    });
+    return;
+  }
   let e=$('email').value.trim().toLowerCase();
   if(!e)e='you@gmail.com';
   if(!/@gmail\.com$/.test(e)){$('authErr').textContent='For the Gmail demo, use an address ending in @gmail.com (or leave it empty).';return;}
@@ -478,16 +574,41 @@ $('gmailBtn').onclick=function(){
 };
 $('forgotBtn').onclick=function(){$('authForm').hidden=true;$('resetForm').hidden=false;$('resetErr').textContent='';};
 $('backLogin').onclick=function(){$('resetForm').hidden=true;$('authForm').hidden=false;$('resetStep2').hidden=true;$('resetStep1').hidden=false;};
-$('sendOtp').onclick=function(){
+$('sendOtp').onclick=async function(){
   const e=$('email').value.trim().toLowerCase();
+  if(ONLINE){
+    if(!validEmail(e)){$('resetErr').textContent='Type your account email in the Email box first.';return;}
+    const r=await sb.auth.resetPasswordForEmail(e,{redirectTo:HERE});
+    if(r.error){$('resetErr').textContent=errMsg(r.error);return;}
+    $('otpNote').textContent='We emailed '+e+'. Type the 6-digit code from the email here, or open the link in the email on this device.';
+    $('resetStep1').hidden=true;$('resetStep2').hidden=false;$('otp').parentElement.hidden=false;$('resetErr').textContent='';
+    return;
+  }
   if(!validEmail(e)||!getAcct(e)){$('resetErr').textContent='Type your account email in the Email box first.';return;}
   otpCode=String(Math.floor(100000+Math.random()*900000));
   $('otpNote').textContent='Demo inbox: your Tomatail code is '+otpCode+'. The real version emails this and it expires in 10 minutes.';
   $('resetStep1').hidden=true;$('resetStep2').hidden=false;$('resetErr').textContent='';
 };
-$('resetForm').addEventListener('submit',function(ev){
+$('resetForm').addEventListener('submit',async function(ev){
   ev.preventDefault();
   const e=$('email').value.trim().toLowerCase();
+  if(ONLINE){
+    const np=$('newpw').value;
+    if(np.length<6){$('resetErr').textContent='New password needs at least 6 characters.';return;}
+    try{
+      if(!recoveryViaLink){
+        const v=await sb.auth.verifyOtp({email:e,token:$('otp').value.trim(),type:'recovery'});
+        if(v.error)throw v.error;
+      }
+      const u=await sb.auth.updateUser({password:np});
+      if(u.error)throw u.error;
+      recoveryViaLink=false;toast('Password updated.');
+      $('resetForm').hidden=true;$('authForm').hidden=false;$('resetStep2').hidden=true;$('resetStep1').hidden=false;
+      try{history.replaceState(null,'',HERE);}catch(_){}
+      enterOnline(u.data.user);
+    }catch(x){$('resetErr').textContent=errMsg(x);}
+    return;
+  }
   if($('otp').value.trim()!==otpCode){$('resetErr').textContent='That code does not match.';return;}
   if($('newpw').value.length<6){$('resetErr').textContent='New password needs at least 6 characters.';return;}
   setAcct(e,{pw:$('newpw').value});otpCode=null;
@@ -516,6 +637,7 @@ function enter(email){
 }
 function logout(){
   clearSay();
+  if(ONLINE){try{sb.auth.signOut();}catch(e){}S.serverToday=null;}
   LS.del('tomatail:session');S.email=null;G=null;stopMed();
   $('tools').hidden=true;$('toolsBtn').setAttribute('aria-expanded','false');
   $('pw').value='';showScreen('s-auth');
@@ -533,7 +655,11 @@ function buildPick(){
     b.appendChild(cv);
     const n=document.createElement('b');n.textContent=s.name;b.appendChild(n);
     const d=document.createElement('span');d.textContent=s.blurb;b.appendChild(d);
-    b.onclick=function(){G=newGame(k,today());save();showScreen('s-home');refresh();clearSay();say((SOUND[k]||'Hi!')+' Hi! I am your new '+s.name.toLowerCase()+'. Let us be friends.',5200);say('Feed me, water our tomatoes, play, then sit with me. Four things a day.',5600);};
+    b.onclick=async function(){
+      if(ONLINE){
+        try{G=null;fromServer(await rpc('adopt_pet',{p_species:k}));await loadLog();}catch(e){toast(errMsg(e));return;}
+      }else{G=newGame(k,today());save();}
+      showScreen('s-home');refresh();clearSay();say((SOUND[k]||'Hi!')+' Hi! I am your new '+s.name.toLowerCase()+'. Let us be friends.',5200);say('Feed me, water our tomatoes, play, then sit with me. Four things a day.',5600);};
     box.appendChild(b);
   });
 }
@@ -575,6 +701,7 @@ function refresh(){
   $('rescue').hidden=G.alive;
   if(!G.alive)buildRescue();
   buildLog();
+  $('clockTxt').hidden=false;if(ONLINE&&$('clockTxt').parentElement.id==='tmGrp'){$('tools').insertBefore($('clockTxt'),$('tmGrp'));}
   $('clockTxt').textContent='Today in '+S.tz+': '+t+(S.offset?'  (time machine +'+S.offset+' d)':'')+'. Logins today: '+((G.logins&&G.logins.day===t)?G.logins.n:0)+'. One tomato per day, however many times you log in.';
 }
 
@@ -622,8 +749,15 @@ function doTask(task){
   refresh();
   setTimeout(function(){busy=false;anim=null;finishTask(task);},anim.dur);
 }
-function finishTask(task){
-  const r=completeTask(G,task,today());save();refresh();
+async function finishTask(task){
+  let r;
+  if(ONLINE){
+    busy=true;refresh();
+    try{const st=await rpc('complete_task',{p_task:task});fromServer(st);r={valid:!!st.valid,gift:!!st.gift};}
+    catch(e){busy=false;refresh();toast(errMsg(e));return;}
+    busy=false;
+  }else{r=completeTask(G,task,today());save();}
+  refresh();
   const done=tasksDone(G);
   if(r.valid){
     for(let i=0;i<7;i++)fx.push({k:'heart',x:PX+(i*5-14),y:62,vy:-16,t0:performance.now()+i*80,life:1400});
@@ -655,10 +789,15 @@ function openMed(){
   $('med').scrollIntoView({block:'nearest'});
 }
 let medPrev=null;
-function startMed(){
+async function startMed(){
+  if(ONLINE){
+    $('medStart').disabled=true;
+    try{await rpc('start_meditation');}catch(e){$('medStart').disabled=false;toast(errMsg(e));return;}
+    $('medStart').disabled=false;
+  }
   medPrev={on:Music.isOn(),cur:Music.cur()};
   const v=$('medTrack').value;if(v==='none')Music.stop();else Music.play(parseInt(v,10));
-  medRunning=true;medEnd=Date.now()+600000;$('medStart').hidden=true;$('medSkip').hidden=false;
+  medRunning=true;medEnd=Date.now()+600000;$('medStart').hidden=true;$('medSkip').hidden=ONLINE;
   let ph=false;
   const tick=function(){
     const left=(medEnd-Date.now())/1000;$('medTimer').textContent=fmt(left);
@@ -698,9 +837,12 @@ function buildRescue(){
   });
   $('sendLetter').hidden=gone;$('newPet').hidden=!gone;
 }
-$('sendLetter').onclick=function(){
+$('sendLetter').onclick=async function(){
   const c=document.querySelector('input[name=letter]:checked');
-  if(c&&rescue(G,today(),c.value)){
+  let ok=false;
+  if(c&&ONLINE){try{fromServer(await rpc('rescue_pet',{p_letter:c.value}));await loadLog();ok=true;}catch(e){toast(errMsg(e));}}
+  else if(c)ok=rescue(G,today(),c.value);
+  if(ok){
     save();refresh();
     for(let i=0;i<8;i++)fx.push({k:'heart',x:PX+(i*4-14),y:62,vy:-16,t0:performance.now()+i*90,life:1500});
     toast((MAX_RESCUES-G.rescues)+' rescues left for this pet.');
@@ -747,7 +889,7 @@ document.querySelectorAll('[data-jump]').forEach(function(b){b.onclick=function(
 };});
 $('jumpReset').onclick=function(){S.offset=0;LS.set('tomatail:offset','0');refresh();toast('Back to the real date. The pet may think you came from the future.');};
 $('skySel').onchange=function(){hourOverride=this.value==='auto'?null:parseFloat(this.value);};
-$('tzSel').onchange=function(){S.tz=$('tzSel').value;LS.set('tomatail:tz:'+S.email,S.tz);if(G){sync(G,today());save();}refresh();};
+$('tzSel').onchange=async function(){if(ONLINE){try{fromServer(await rpc('set_timezone',{p_tz:$('tzSel').value}));refresh();}catch(e){toast(errMsg(e));}return;}S.tz=$('tzSel').value;LS.set('tomatail:tz:'+S.email,S.tz);if(G){sync(G,today());save();}refresh();};
 $('notifBtn').onclick=function(){
   if(!('Notification' in window)){toast('This browser does not support notifications.');return;}
   try{Notification.requestPermission().then(function(p){toast('Notifications: '+p+'.');}).catch(function(){toast('Could not ask for permission here.');});}catch(e){toast('Could not ask for permission here.');}
@@ -757,7 +899,12 @@ $('themeBtn').onclick=function(){
   r.setAttribute('data-theme',dark?'light':'dark');
 };
 $('fixFruit').onclick=function(){if(!G||!G.alive)return;G.fruits=(G.lastRewardDay===today())?1:0;save();refresh();toast('Tomatoes reset to '+G.fruits+' (one per day you completed).');};
-$('resetPet').onclick=function(){
+$('resetPet').onclick=async function(){
+  if(ONLINE){
+    try{await rpc('retire_pet');}catch(e){toast(errMsg(e));return;}
+    G=null;stopMed();pickMode='first';buildPick();showScreen('s-pick');$('tools').hidden=true;$('toolsBtn').setAttribute('aria-expanded','false');
+    return;
+  }
   if(!S.email)return;LS.del('tomatail:game:'+S.email);G=null;S.offset=0;LS.set('tomatail:offset','0');stopMed();
   pickMode='first';buildPick();showScreen('s-pick');$('tools').hidden=true;$('toolsBtn').setAttribute('aria-expanded','false');
 };
@@ -944,7 +1091,12 @@ setInterval(function(){
   c.imageSmoothingEnabled=false;drawScene(performance.now());
 },90);
 setInterval(function(){
-  if(!G||!S.email)return;const t=today();
+  if(!G||!S.email)return;
+  if(ONLINE){
+    if(S.serverToday&&dayKey(Date.now(),S.tz)!==S.serverToday){refetch().then(function(){if(G&&G.alive)greet(absentDays(G,today()));});}
+    return;
+  }
+  const t=today();
   if(t!==lastDay){lastDay=t;const b=G.log.length;sync(G,t);notifyNew(b);save();refresh();}
 },20000);
 
@@ -953,6 +1105,7 @@ setInterval(function(){
   const lg=$('logo');IC.tomato&&paint(lg.getContext('2d'),IC.tomato.rows,IC.tomato.pal,0,0,1,false);
   buildTasks();setMode('in');
   const s=LS.get('tomatail:session');
+  if(ONLINE){bootOnline();return;}
   if(s&&getAcct(s))enter(s);else showScreen('s-auth');
   lastDay=S.email?today():'';
 })();
