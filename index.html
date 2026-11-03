@@ -1138,10 +1138,27 @@ function drawLampGlow(hr,P){
     v.addColorStop(0,'rgba(30,14,20,0)');v.addColorStop(1,'rgba(30,14,20,'+(0.45*n).toFixed(3)+')');
     c.fillStyle=v;c.fillRect(0,0,192,108);
   }
-  const k=0.16+0.38*n;
-  const g=c.createRadialGradient(172,34,2,158,52,100);
+  // warm room light, gently breathing like a real paper lamp
+  const fl=1+0.05*Math.sin(performance.now()/1100)+0.02*Math.sin(performance.now()/370);
+  const k=(0.16+0.42*n)*fl;
+  const g=c.createRadialGradient(172,34,2,158,52,105);
   g.addColorStop(0,'rgba(255,200,120,'+k.toFixed(3)+')');g.addColorStop(0.5,'rgba(255,190,110,'+(k*0.45).toFixed(3)+')');g.addColorStop(1,'rgba(255,190,110,0)');
   c.fillStyle=g;c.fillRect(0,0,192,108);
+  // soft cone of light falling from the lamp onto the chair and floor
+  const cone=c.createLinearGradient(0,46,0,96);
+  cone.addColorStop(0,'rgba(255,224,160,'+((0.10+0.30*n)*fl).toFixed(3)+')');cone.addColorStop(1,'rgba(255,214,150,0)');
+  c.fillStyle=cone;c.beginPath();c.moveTo(166,45);c.lineTo(178,45);c.lineTo(198,96);c.lineTo(146,96);c.closePath();c.fill();
+  // pool of light on the floor
+  c.save();c.translate(172,92);c.scale(1,0.22);
+  const pool=c.createRadialGradient(0,0,2,0,0,36);
+  pool.addColorStop(0,'rgba(255,214,150,'+((0.08+0.34*n)*fl).toFixed(3)+')');pool.addColorStop(1,'rgba(255,214,150,0)');
+  c.fillStyle=pool;c.beginPath();c.arc(0,0,36,0,Math.PI*2);c.fill();c.restore();
+  // bright bloom around the lamp shade itself
+  const halo=c.createRadialGradient(172,34,6,172,34,26);
+  halo.addColorStop(0,'rgba(255,236,180,'+((0.12+0.55*n)*fl).toFixed(3)+')');halo.addColorStop(1,'rgba(255,220,150,0)');
+  c.fillStyle=halo;c.fillRect(140,4,64,62);
+  // the paper glows from inside at night
+  if(n>0.05){c.fillStyle='rgba(255,250,225,'+(0.35*n*fl).toFixed(3)+')';c.fillRect(169,27,7,13);c.fillRect(167,30,11,7);}
 }
 const OUT='#2a2230';
 function drawOutlined(R){
