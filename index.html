@@ -1033,7 +1033,7 @@ const WIN={x0:14,x1:80,y0:10,y1:86,mx:62,ty:38};
 function drawCity(t,hr,P){
   const night=P.star,W=WIN;
   // warm wall
-  const wall=mix('#e9dcc4','#5a4f44',night),wall2=mix('#ddcfb4','#51473d',night);
+  const wall=mix('#f5ecdc','#6c6052',night),wall2=mix('#ece1cd','#62574a',night);
   c.fillStyle=wall;c.fillRect(0,0,192,86);
   c.fillStyle=wall2;for(let y=6;y<86;y+=10)for(let x=(y%20?4:9);x<192;x+=10)if(x<W.x0-6||x>W.x1+6)c.fillRect(x,y,1,1);
   // the city and the balcony seen through a tall window
