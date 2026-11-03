@@ -48,7 +48,12 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
 .tomrow{display:flex;gap:3px}
 .ico{image-rendering:pixelated;display:block}
 .statv{font-family:"Pixelify Sans",monospace;font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:6px}
-.stage{border:4px solid var(--fg);box-shadow:0 5px 0 var(--shadow);line-height:0;background:#2b2350}
+.stage{position:relative;border:4px solid var(--fg);box-shadow:0 5px 0 var(--shadow);line-height:0;background:#2b2350}
+.bubble{position:absolute;right:10%;top:7%;max-width:min(62%,320px);background:var(--card);color:var(--fg);border:3px solid var(--fg);box-shadow:0 3px 0 var(--shadow);padding:8px 12px;font:600 .9rem/1.35 Figtree,system-ui,sans-serif;border-radius:2px;animation:pop .25s ease-out}
+.bubble::after{content:"";position:absolute;bottom:-10px;right:28%;width:12px;height:12px;background:var(--card);border-right:3px solid var(--fg);border-bottom:3px solid var(--fg);transform:rotate(45deg)}
+.bubble b{font-family:"Pixelify Sans",ui-monospace,monospace}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:520px){.bubble{font-size:.8rem;padding:6px 9px;top:4%}}
 #scene{width:100%;aspect-ratio:16/9;image-rendering:pixelated;display:block}
 .says{min-height:3em}
 .tasks{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -136,7 +141,7 @@ select,input[type=email],input[type=password],input[type=text]{background:var(--
       <div class="stat"><span class="lab">Tomatoes on the plant</span><span class="statv"><span id="fruitIco"></span><span id="fruitN">1</span></span></div>
       <div class="stat"><span class="lab">Streak</span><span class="statv" id="streakN">0 / 7</span></div>
     </div>
-    <div class="stage"><canvas id="scene" width="192" height="108" aria-label="Your pet and tomato plant"></canvas></div>
+    <div class="stage"><canvas id="scene" width="192" height="108" aria-label="Your pet and tomato plant"></canvas><div class="bubble" id="bubble" role="status" aria-live="polite" hidden></div></div>
     <p class="says" id="says" aria-live="polite"></p>
 
     <div id="taskBox" class="tasks"></div>
@@ -490,6 +495,7 @@ $('resetForm').addEventListener('submit',function(ev){
 });
 
 /* ---------- enter / boot ---------- */
+let greetN=0;
 function enter(email){
   S.email=email;LS.set('tomatail:session',email);
   S.tz=LS.get('tomatail:tz:'+email)||detectedTz;
@@ -502,12 +508,14 @@ function enter(email){
       G.tasks=freshTasks(t);toast('Last visit ended before all four tasks, so that day did not count. Start again.');
     }
     noteLogin(G,t);save();
+    greetN=absentDays(G,t);
   }
   buildTools();
-  if(G){showScreen('s-home');refresh();}else{pickMode='first';buildPick();showScreen('s-pick');}
+  if(G){showScreen('s-home');refresh();setTimeout(function(){greet(greetN);},500);}else{pickMode='first';buildPick();showScreen('s-pick');}
   notifyNew(0);
 }
 function logout(){
+  clearSay();
   LS.del('tomatail:session');S.email=null;G=null;stopMed();
   $('tools').hidden=true;$('toolsBtn').setAttribute('aria-expanded','false');
   $('pw').value='';showScreen('s-auth');
@@ -525,7 +533,7 @@ function buildPick(){
     b.appendChild(cv);
     const n=document.createElement('b');n.textContent=s.name;b.appendChild(n);
     const d=document.createElement('span');d.textContent=s.blurb;b.appendChild(d);
-    b.onclick=function(){G=newGame(k,today());save();showScreen('s-home');refresh();toast('Meet your '+s.name.toLowerCase()+'. It already likes you.');};
+    b.onclick=function(){G=newGame(k,today());save();showScreen('s-home');refresh();clearSay();say((SOUND[k]||'Hi!')+' Hi! I am your new '+s.name.toLowerCase()+'. Let us be friends.',5200);say('Feed me, water our tomatoes, play, then sit with me. Four things a day.',5600);};
     box.appendChild(b);
   });
 }
@@ -570,6 +578,38 @@ function refresh(){
   $('clockTxt').textContent='Today in '+S.tz+': '+t+(S.offset?'  (time machine +'+S.offset+' d)':'')+'. Logins today: '+((G.logins&&G.logins.day===t)?G.logins.n:0)+'. One tomato per day, however many times you log in.';
 }
 
+/* ---------- pet speech ---------- */
+const SOUND={chicken:'Bawk!',parrot:'Squawk! Hello, hello!',pig:'Oink!',hamster:'Squeak!',monkey:'Ooh-ooh!',turtle:'...oh, hi.',snake:'Hsss-hello.',fish:'Blub!'};
+const sayQ=[];let sayT=null;
+function say(txt,ms){sayQ.push([txt,ms||4800]);if(!sayT)nextSay();}
+function nextSay(){
+  const b=$('bubble'),it=sayQ.shift();
+  if(!it){b.hidden=true;sayT=null;return;}
+  b.hidden=true;void b.offsetWidth;b.textContent=it[0];b.hidden=false;sayT=setTimeout(nextSay,it[1]);
+}
+function clearSay(){sayQ.length=0;clearTimeout(sayT);sayT=null;$('bubble').hidden=true;}
+function untilTomorrow(){
+  const left=Math.max(1,Math.round((24-localHour())*60)),h=Math.floor(left/60),m=left%60;
+  return (h?h+'h ':'')+m+'m';
+}
+function seeYou(){return 'See you tomorrow! A new day starts in '+untilTomorrow()+'.';}
+function greet(n){
+  if(!G||!G.alive)return;
+  clearSay();
+  const snd=SOUND[G.species]||'Hi!';
+  if(tasksDone(G)===TASKS.length){say(snd+' You came back to visit! We already finished today.');say(seeYou(),5200);return;}
+  if(n>=1){say(snd+' You are back! I missed you for '+n+(n>1?' days.':' day.'),5200);say('Can we do our four things together?');return;}
+  const h=localHour();
+  const line=h<5?'You are up late! Our four things, then sleep?':h<12?'Good morning! The tomatoes woke up before us.':h<17?'Good afternoon! Ready for our four things?':h<21?'Good evening! There is still time for our four things.':'Good night-ish! Quick, our four things before bed?';
+  say(snd+' '+line);
+}
+function cheer(){
+  anim={kind:'cheer',t0:performance.now(),dur:1600};
+  setTimeout(function(){if(anim&&anim.kind==='cheer')anim=null;},1600);
+  const cols=['#d63f2b','#f2b632','#4fa23a','#6fb4ff','#e8506a','#c27ad9'],t0=performance.now();
+  for(let i=0;i<46;i++)fx.push({k:'conf',x:Math.random()*192,y:-4-Math.random()*20,vy:28+Math.random()*30,t0:t0+Math.random()*500,life:3200,col:cols[i%cols.length],ph:Math.random()*6});
+}
+
 /* ---------- task actions ---------- */
 function doTask(task){
   if(!G||!G.alive||busy)return;
@@ -584,11 +624,21 @@ function doTask(task){
 }
 function finishTask(task){
   const r=completeTask(G,task,today());save();refresh();
+  const done=tasksDone(G);
   if(r.valid){
     for(let i=0;i<7;i++)fx.push({k:'heart',x:PX+(i*5-14),y:62,vy:-16,t0:performance.now()+i*80,life:1400});
-    toast(r.gift?'Seven days in a row! A second plant will arrive in a later version.':'Day counted. Happiness and the plant both grew by one.');
-  }else if(tasksDone(G)===TASKS.length)toast('All four done. Today already gave its tomato, so no extra one.');
-  else toast({feed:'Nom nom nom.',water:'The tomatoes drink it all up.',play:'Zoomies achieved.'}[task]||'Done.');
+    cheer();clearSay();
+    const st=G.streak;
+    say('We did all four! One more tomato for our plant.',4200);
+    if(st>1)say(st+' days in a row. I am so proud of us.',4200);
+    if(r.gift)toast('Seven days in a row! A second plant will arrive in a later version.');
+    say(seeYou(),6500);
+  }else if(done===TASKS.length){
+    clearSay();say('All four again? Today already gave its tomato. '+seeYou(),6000);
+  }else{
+    const line={feed:'Yum! Thank you!',water:'Look, the tomatoes are happy too!',play:'Again! Again! That was fun.',meditate:'That felt calm. Thank you for sitting with me.'}[task]||'Thank you!';
+    clearSay();say(line+' '+done+' of 4 done.');
+  }
 }
 
 /* ---------- meditation ---------- */
@@ -627,7 +677,7 @@ $('medStart').onclick=startMed;
 $('medSkip').onclick=function(){if(medRunning)finishMed();};
 $('medLeave').onclick=function(){
   const early=medRunning;stopMed();refresh();
-  if(early)toast('You left early, so meditation was not counted.');
+  if(early){toast('You left early, so meditation was not counted.');clearSay();say('Oh... maybe next time we sit the full ten minutes?');}
 };
 
 /* ---------- rescue ---------- */
@@ -653,7 +703,8 @@ $('sendLetter').onclick=function(){
   if(c&&rescue(G,today(),c.value)){
     save();refresh();
     for(let i=0;i<8;i++)fx.push({k:'heart',x:PX+(i*4-14),y:62,vy:-16,t0:performance.now()+i*90,life:1500});
-    toast('Your '+spLabel()+' is back. '+(MAX_RESCUES-G.rescues)+' rescues left.');
+    toast((MAX_RESCUES-G.rescues)+' rescues left for this pet.');
+    clearSay();say('I got your letter. I knew you would come back.',5200);say('Let us start again, together.');
   }
 };
 $('newPet').onclick=function(){pickMode='new';buildPick();showScreen('s-pick');};
@@ -692,6 +743,7 @@ document.querySelectorAll('[data-jump]').forEach(function(b){b.onclick=function(
   stopMed();const before=G.log.length;
   if(!G.alive||true){sync(G,today());}
   notifyNew(before);save();refresh();toast('Time machine: it is now '+today()+'.');
+  if(G&&G.alive)setTimeout(function(){greet(absentDays(G,today()));},400);
 };});
 $('jumpReset').onclick=function(){S.offset=0;LS.set('tomatail:offset','0');refresh();toast('Back to the real date. The pet may think you came from the future.');};
 $('skySel').onchange=function(){hourOverride=this.value==='auto'?null:parseFloat(this.value);};
@@ -855,6 +907,7 @@ function drawPet(t,stage){
   if(anim){
     const e=(performance.now()-anim.t0);
     if(anim.kind==='play'){dy=-Math.abs(Math.sin(e/130))*9;dx=Math.sin(e/500)*10;}
+    else if(anim.kind==='cheer'){dy=-Math.abs(Math.sin(e/110))*12;}
     else if(anim.kind==='feed'){dy=((e/160)|0)%2?-1:0;}
     else if(anim.kind==='water'){dx=-Math.min(e/10,34)*(e<2000?1:0);}
   }else if(medRunning){dy=-3+Math.sin(t/700)*2;}
@@ -881,6 +934,7 @@ function drawFx(t){
     if(f.k==='food'){c.fillStyle='#f2b632';c.fillRect(Math.round(x),Math.round(Math.min(y,GROUND-2)),2,2);}
     else if(f.k==='drop'){c.fillStyle='#6fb4ff';c.fillRect(Math.round(x),Math.round(y),1,2);}
     else if(f.k==='heart'){paint(c,IC.heart.rows,IC.heart.pal,Math.round(x),Math.round(y),1,false);}
+    else if(f.k==='conf'){c.fillStyle=f.col;c.fillRect(Math.round(x+Math.sin(e/180+f.ph)*4),Math.round(Math.min(y,GROUND+8)),2,(((e/120)|0)%2)?2:1);}
     else if(f.k==='leaf'){c.fillStyle='#8a6230';c.fillRect(Math.round(x+Math.sin(e/250)*3),Math.round(Math.min(y,PLY+2)),2,1);}
   }
 }
