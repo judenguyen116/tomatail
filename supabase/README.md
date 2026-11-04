@@ -38,3 +38,6 @@ The day is computed from the user's time zone on the server.
 
 ## Scheduled job
 `tomatail-sync-all` (pg_cron, every hour at :17) applies absences for all pets, records reminder events at day 1 and day 6, and marks pets dead at day 7, even if the player never comes back. Sending the actual email is not built yet.
+
+## Resuming a sit
+Leaving the 10-minute sit pauses it. The client pings `med_ping()` every 20 s while sitting. If the player comes back within 15 minutes, `start_meditation()` continues from the time really spent sitting (`resumed: true`, `elapsed` seconds). After 15 minutes the sit starts again from 10:00. `pet_events` logs `meditation_resumed`.

@@ -1,0 +1,9 @@
+-- Applied to project wqdiglfdolqelyvidslp as "tomatail_meditation_resume".
+-- 15-minute resume window for the 10-minute sit:
+--   * daily_checkins.meditation_seen_at = last moment the player was really sitting (heartbeat)
+--   * public.med_ping() refreshes it every 20 s from the client; a gap over 2 minutes is not counted
+--   * public.start_meditation() resumes when the last heartbeat is under 15 minutes old and at least
+--     15 s of sitting happened: meditation_started_at is moved back by the time really spent sitting,
+--     so complete_task's 9 min 50 s check is unchanged
+--   * private.state() returns tasks.meditation_resume_left (seconds, or null)
+--   * pet_events kind 'meditation_resumed' added
