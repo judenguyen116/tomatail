@@ -1,0 +1,6 @@
+-- Measurement (applied 2026-11-04 via MCP):
+-- profiles.is_test marks internal/test accounts (dashboard leaves them out).
+-- pet_events kinds 'task' (first time each task is done per day, detail {task}) and 'meditation_started'.
+-- complete_task logs 'task' when a task flips to done; start_meditation logs 'meditation_started'.
+-- Index pet_events(kind, day).
+-- Function bodies: as in 20261103092016 with those inserts added.

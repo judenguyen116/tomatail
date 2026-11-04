@@ -8,12 +8,12 @@ The game rules run inside the database, so a player cannot give themselves extra
 ## Tables
 | Table | What it holds |
 |---|---|
-| `profiles` | One row per user (created automatically on sign-up): email, time zone |
+| `profiles` | One row per user (created automatically on sign-up): email, time zone, `is_test` (internal/test account, left out of the player dashboard) |
 | `pets` | Each pet a user has had, with its optional `name`. One active pet per user (`retired_at is null`). Happiness, tomatoes, rescues, streak, alive/dead |
 | `daily_checkins` | One row per pet per day: which of the 4 tasks are done, meditation start time, whether the day was rewarded |
 | `logins` | Every visit, with the user's local day |
 | `mood_entries` | Mood shared after meditation (mood, optional note) and the pet's AI-written reply |
-| `pet_events` | History: created, retired, browser reminder, email reminder, death, rescue (with the letter), valid check-in |
+| `pet_events` | History: created, retired, browser reminder, email reminder, death, rescue (with the letter), valid check-in, renamed, task (first time each task is done that day), meditation_started |
 
 Guests: players can start without an account (Supabase anonymous sign-in). A guest can later link Google to keep the pet. Requires Authentication → Sign In / Providers → "Allow anonymous sign-ins" and "Allow manual linking".
 
