@@ -41,3 +41,6 @@ The day is computed from the user's time zone on the server.
 
 ## Resuming a sit
 Leaving the 10-minute sit pauses it. The client pings `med_ping()` every 20 s while sitting. If the player comes back within 15 minutes, `start_meditation()` continues from the time really spent sitting (`resumed: true`, `elapsed` seconds). After 15 minutes the sit starts again from 10:00. `pet_events` logs `meditation_resumed`.
+
+## Streak repairs
+Every 3 full days earns 1 repair (hold at most 2). A repair covers one missed day and is spent automatically on the next full day. A gap longer than the repairs held restarts the streak at 1. Repairs do not stop the pet from missing days (happiness and death rules are unchanged). Events: `repair_used`, `repair_earned`.

@@ -1,0 +1,9 @@
+-- Applied to project wqdiglfdolqelyvidslp as "tomatail_streak_repair" (also "tomatail_meditation_resume_no_minimum" earlier).
+-- Streak repair, like Finch: every 3 full days earns 1 repair, hold at most 2.
+--   * pets.repairs (0..2), pets.repair_progress (0..2)
+--   * complete_task: on a full day after a gap of N missed days, if N between 1 and repairs, N repairs are spent
+--     and the streak continues (+1); otherwise the streak restarts at 1. Each full day adds 1 to repair_progress;
+--     at 3 it resets to 0 and a repair is added unless the player already holds 2.
+--   * complete_task also returns repaired (days covered) and repair_earned
+--   * private.state: streak_now keeps the streak while the gap is within the repairs held
+--   * pet_events kinds repair_used, repair_earned
