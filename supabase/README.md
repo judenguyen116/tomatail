@@ -9,7 +9,7 @@ The game rules run inside the database, so a player cannot give themselves extra
 | Table | What it holds |
 |---|---|
 | `profiles` | One row per user (created automatically on sign-up): email, time zone |
-| `pets` | Each pet a user has had. One active pet per user (`retired_at is null`). Happiness, tomatoes, rescues, streak, alive/dead |
+| `pets` | Each pet a user has had, with its optional `name`. One active pet per user (`retired_at is null`). Happiness, tomatoes, rescues, streak, alive/dead |
 | `daily_checkins` | One row per pet per day: which of the 4 tasks are done, meditation start time, whether the day was rewarded |
 | `logins` | Every visit, with the user's local day |
 | `pet_events` | History: created, retired, browser reminder, email reminder, death, rescue (with the letter), valid check-in |
@@ -26,6 +26,7 @@ Row Level Security: signed-in users can only read their own rows. Nobody can ins
 | `complete_task(p_task)` | `feed`, `water`, `play`, `meditate` (needs 10 minutes since start). All 4 done = +1 tomato and +1 happiness, once per day. Returns `valid` and `gift` (7-day streak) |
 | `rescue_pet(p_letter)` | Brings a dead pet back; max 5 per pet; plant restarts at 0 |
 | `set_timezone(p_tz)` | Changes the user's time zone (IANA name). First set is free, then once every 7 days. Changing zone cannot open a second rewarded day |
+| `set_pet_name(p_name)` | Names the current pet (1-20 characters, trimmed; empty clears it). Logged as a `renamed` event |
 | `retire_pet()` | Prototype tool: give up the current pet |
 
 The day is computed from the user's time zone on the server.
