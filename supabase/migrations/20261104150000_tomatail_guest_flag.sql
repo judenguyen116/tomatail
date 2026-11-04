@@ -1,0 +1,5 @@
+-- Guest play: save_mood now returns 'guest' (true for Supabase anonymous sign-ins).
+-- The server function uses the ready-made reply for guests so anonymous accounts cannot spend AI credits.
+-- Full function body: same as 20261104120000 plus
+--   is_guest boolean := coalesce((auth.jwt()->>'is_anonymous')::boolean, false);
+-- and 'guest', is_guest in the returned object.
