@@ -56,3 +56,6 @@ No schema change. After 7 days away the pet is still stored as alive=false / eve
 
 ## Adventures
 After a valid day (all four tasks) complete_task creates a pet_adventures row (returns_at = now + 6h, story_idx 0-9, gift souvenir/heart/tomato 50/35/15). state() exposes `adventure` (story and gift only once ready). collect_adventure() applies the gift. Texts live in the client (src/game/adventure.ts). Migration: 20261105120000_tomatail_adventures.sql.
+
+## Wardrobe
+pets.owned text[], pets.hat, pets.outfit. buy_item(p_item) spends tomatoes (prices in private.item_price, mirrored in client src/game/wardrobe.ts) and wears the item; wear_item(p_slot, p_item) wears or removes (null). Migration: 20261105130000_tomatail_wardrobe.sql.
