@@ -44,3 +44,6 @@ Leaving the 10-minute sit pauses it. The client pings `med_ping()` every 20 s wh
 
 ## Streak repairs
 Every 3 full days earns 1 repair (hold at most 2). A repair covers one missed day and is spent automatically on the next full day. A gap longer than the repairs held restarts the streak at 1. Repairs do not stop the pet from missing days (happiness and death rules are unchanged). Events: `repair_used`, `repair_earned`.
+
+## Coffee button clicks
+`log_click('donate_open')` when the "Buy me a coffee cup" dialog opens, `log_click('donate_paypal')` when the PayPal link is clicked. QR codes (MoMo, Techcombank) cannot be tracked beyond the dialog opening.

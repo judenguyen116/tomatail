@@ -1,0 +1,4 @@
+-- Applied to project wqdiglfdolqelyvidslp as "tomatail_click_events".
+-- public.click_events (user_id nullable, kind in donate_open / donate_paypal, created_at); RLS read-own,
+-- no direct writes. public.log_click(p_kind) is callable by anon and authenticated: unknown kinds are ignored,
+-- signed-in players are limited to one row per kind per 10 s, signed-out visitors to 300 rows per hour.
