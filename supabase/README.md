@@ -59,3 +59,6 @@ After a valid day (all four tasks) complete_task creates a pet_adventures row (r
 
 ## Wardrobe
 pets.owned text[], pets.hat, pets.outfit. buy_item(p_item) spends tomatoes (prices in private.item_price, mirrored in client src/game/wardrobe.ts) and wears the item; wear_item(p_slot, p_item) wears or removes (null). Migration: 20261105130000_tomatail_wardrobe.sql.
+
+## Sit length and first-week milestones
+start_meditation(p_minutes 3|5|10) stores daily_checkins.meditation_minutes; complete_task requires minutes*60-10 s. A 10-minute sit gives +1 bonus tomato on the valid day. pets.valid_days counts completed days; milestones at 1 (hat_cap), 3 (+3 tomatoes), 7 (fit_cape; tomatoes instead if already owned), logged as event "milestone". Migration: 20261105140000_tomatail_sit_length_milestones.sql.
