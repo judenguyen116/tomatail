@@ -53,3 +53,6 @@ Tools > Vacation mode calls `start_vacation()`. The pet is treated as looked aft
 
 ## Pet wandering off
 No schema change. After 7 days away the pet is still stored as alive=false / event "death" / died_on, but the game shows it as having gone off to play. rescue_pet (letters, max 5) calls it home.
+
+## Adventures
+After a valid day (all four tasks) complete_task creates a pet_adventures row (returns_at = now + 6h, story_idx 0-9, gift souvenir/heart/tomato 50/35/15). state() exposes `adventure` (story and gift only once ready). collect_adventure() applies the gift. Texts live in the client (src/game/adventure.ts). Migration: 20261105120000_tomatail_adventures.sql.
