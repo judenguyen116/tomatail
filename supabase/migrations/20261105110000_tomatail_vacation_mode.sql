@@ -1,0 +1,6 @@
+-- Applied to project wqdiglfdolqelyvidslp as "tomatail_vacation_mode".
+-- Vacation mode: pets.vacation_since (date). While on (max 21 days) private.sync_pet keeps the pet checked in every day,
+-- so no happiness or tomato loss and no death; the streak is paused. public.start_vacation() / public.end_vacation().
+-- On exit (manual or after 21 days) a streak that was alive when the player left is carried over by shifting
+-- last_valid_day by the vacation length; a broken streak is not revived. Days beyond 21 count as normal absence.
+-- State exposes pet.vacation_since and pet.vacation_days_left. Events: vacation_started, vacation_ended.

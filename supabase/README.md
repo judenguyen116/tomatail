@@ -47,3 +47,6 @@ Every 3 full days earns 1 repair (hold at most 2). A repair covers one missed da
 
 ## Coffee button clicks
 `log_click('donate_open')` when the "Buy me a coffee cup" dialog opens, `log_click('donate_paypal')` when the PayPal link is clicked. QR codes (MoMo, Techcombank) cannot be tracked beyond the dialog opening.
+
+## Vacation mode
+Tools > Vacation mode calls `start_vacation()`. The pet is treated as looked after every day, the streak pauses, and it ends with `end_vacation()` or by itself after 21 days. Repairs and the 7-day death rule do not run while it is on.
