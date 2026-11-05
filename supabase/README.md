@@ -50,3 +50,6 @@ Every 3 full days earns 1 repair (hold at most 2). A repair covers one missed da
 
 ## Vacation mode
 Tools > Vacation mode calls `start_vacation()`. The pet is treated as looked after every day, the streak pauses, and it ends with `end_vacation()` or by itself after 21 days. Repairs and the 7-day death rule do not run while it is on.
+
+## Pet wandering off
+No schema change. After 7 days away the pet is still stored as alive=false / event "death" / died_on, but the game shows it as having gone off to play. rescue_pet (letters, max 5) calls it home.
