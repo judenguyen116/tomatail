@@ -62,3 +62,9 @@ pets.owned text[], pets.hat, pets.outfit. buy_item(p_item) spends tomatoes (pric
 
 ## Sit length and first-week milestones
 start_meditation(p_minutes 3|5|10) stores daily_checkins.meditation_minutes; complete_task requires minutes*60-10 s. A 10-minute sit gives +1 bonus tomato on the valid day. pets.valid_days counts completed days; milestones at 1 (hat_cap), 3 (+3 tomatoes), 7 (fit_cape; tomatoes instead if already owned), logged as event "milestone". Migration: 20261105140000_tomatail_sit_length_milestones.sql.
+
+## Rate limits
+Every game RPC is wrapped: the original function lives in `private.<name>_impl`, the public wrapper calls `private.rate_guard(fn, per_account_per_min, per_ip_per_min=600)` first.
+Per account per minute: complete_task 20, wear_item 20, get_state 30, buy_item/set_pet_name/collect_adventure/med_ping 10, adopt_pet/rescue_pet 5, retire_pet 3, the rest 6.
+Per IP: 600 calls per minute across all functions (client IP read from cf-connecting-ip, x-real-ip or x-forwarded-for). Fixed one-minute windows in `private.rate_hits`. Error: "Too many requests. Please slow down a little."
+Guest sign-ups per IP are limited by Supabase Auth (30 anonymous sign-ins per hour per IP by default).
