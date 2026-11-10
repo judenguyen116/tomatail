@@ -12,7 +12,7 @@ The game rules run inside the database, so a player cannot give themselves extra
 | `pets` | Each pet a user has had, with its optional `name`. One active pet per user (`retired_at is null`). Happiness, tomatoes, rescues, streak, alive/dead |
 | `daily_checkins` | One row per pet per day: which of the 4 tasks are done, meditation start time, whether the day was rewarded |
 | `logins` | Every visit, with the user's local day |
-| `mood_entries` | Mood shared after meditation (mood, optional note) and the pet's AI-written reply |
+| `mood_entries` | Mood shared when opening the game or after meditation (mood, optional note) and the pet's AI-written reply |
 | `pet_events` | History: created, retired, browser reminder, email reminder, death, rescue (with the letter), valid check-in, renamed, task (first time each task is done that day), meditation_started |
 
 Guests: players can start without an account (Supabase anonymous sign-in). A guest can later link Google to keep the pet. Requires Authentication → Sign In / Providers → "Allow anonymous sign-ins" and "Allow manual linking".
@@ -30,7 +30,7 @@ Row Level Security: signed-in users can only read their own rows. Nobody can ins
 | `rescue_pet(p_letter)` | Brings a dead pet back; max 5 per pet; plant restarts at 0 |
 | `set_timezone(p_tz)` | Changes the user's time zone (IANA name). First set is free, then once every 7 days. Changing zone cannot open a second rewarded day |
 | `set_pet_name(p_name)` | Names the current pet (1-20 characters, trimmed; empty clears it). Logged as a `renamed` event |
-| `save_mood(p_mood, p_note)` | After today's meditation only, max 3 per day. Moods: calm, happy, grateful, tired, anxious, sad, stressed, lonely. Returns entry id, `guest` flag + pet context for the AI (guests get a ready-made reply, no AI) |
+| `save_mood(p_mood, p_note)` | Any time of day (the client asks once when the game opens, and again after the sit), max 3 per day. Result has `after_sit`. Moods: calm, happy, grateful, tired, anxious, sad, stressed, lonely. Returns entry id, `guest` flag + pet context for the AI (guests get a ready-made reply, no AI) |
 | `set_mood_reply(p_entry_id, p_reply)` | Stores the pet's reply once (max 600 characters) |
 | `retire_pet()` | Prototype tool: give up the current pet |
 
