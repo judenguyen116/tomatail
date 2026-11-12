@@ -11,7 +11,11 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
 const API = Deno.env.get('PAYPAL_API_BASE') ?? 'https://api-m.sandbox.paypal.com';
-const RETURN = 'https://tomato-tail-garden-pals.vercel.app/';
+const ALLOWED_RETURN = ['https://tomato-tail-garden-pals.vercel.app/', 'https://tomato-tail-garden-pals.lovable.app/'];
+function returnBase(v: unknown): string {
+  const s = typeof v === 'string' ? v.split(/[?#]/)[0] : '';
+  return ALLOWED_RETURN.includes(s) ? s : ALLOWED_RETURN[0];
+}
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false },
 });
@@ -49,6 +53,7 @@ Deno.serve(async (req) => {
       const picks = Array.isArray(body.picks) ? body.picks.map(String) : null;
       const { data: prep, error: pe } = await admin.rpc('shop_prepare_order', { p_uid: uid, p_sku: sku, p_picks: picks });
       if (pe) return json({ error: pe.message }, 400);
+      const base = returnBase(body.return_url);
       const pt = await paypalToken();
       const r = await fetch(`${API}/v2/checkout/orders`, {
         method: 'POST',
@@ -63,7 +68,7 @@ Deno.serve(async (req) => {
           }],
           payment_source: { paypal: { experience_context: {
             shipping_preference: 'NO_SHIPPING', user_action: 'PAY_NOW', brand_name: 'Tomatail',
-            return_url: RETURN, cancel_url: RETURN,
+            return_url: base + '?paypal=return', cancel_url: base + '?paypal=cancel',
           } } },
         }),
       });
