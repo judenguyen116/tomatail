@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       const cap = pu?.payments?.captures?.[0];
       const okAmount = cap && cap.amount?.currency_code === 'USD' && cap.amount?.value === dollars(ord.amount_cents);
       if (r.ok && c.status === 'COMPLETED' && cap?.status === 'COMPLETED' && okAmount && (pu.custom_id ?? pu.reference_id) === ord.id) {
-        const { data: done, error: de } = await admin.rpc('shop_complete_order', { p_order: ord.id, p_paypal_order: pid });
+        const { data: done, error: de } = await admin.rpc('shop_complete_order', { p_order: ord.id, p_paypal_order: pid, p_capture: cap.id });
         if (de) return json({ error: 'Payment taken but grant failed; contact support', order_id: ord.id }, 500);
         return json(done);
       }
